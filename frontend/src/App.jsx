@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 import Plot from 'react-plotly.js'
 
 {/*const API = 'http://localhost:5000'*/}
-const APT = 'https://genomicsapp.onrender.com'
+const API = 'https://genomicsapp.onrender.com'
 
 const App = () => {
   const [file, setFile] = useState(null)
