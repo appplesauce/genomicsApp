@@ -17,7 +17,12 @@ app.use(express.json())
 app.post('/upload', upload.single('vcf'), async (req, res) => {
   const userId = uuid()
   const filePath = req.file.path
-  await sendVCFEmail(filePath, userId)
+  try {
+    await sendVCFEmail(filePath, userId)
+    console.log(`📤 Sent email with user ID ${userId}`)
+  } catch (err) {
+    console.error('❌ Failed to send email:', err)
+  }  
   res.json({ userId })
 })
 
