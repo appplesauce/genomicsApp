@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import * as d3 from 'd3'
 import Plot from 'react-plotly.js'
 
-const API = 'http://localhost:5000'
+{/*const API = 'http://localhost:5000'*/}
+const APT = 'https://genomicsapp.onrender.com'
 
 const App = () => {
   const [file, setFile] = useState(null)
