@@ -9,9 +9,10 @@ const KEYFILE = path.join(process.cwd(), 'credentials.json')
 const FOLDER_ID = process.env.DRIVE_FOLDER_ID
 
 const auth = new google.auth.GoogleAuth({
-  keyFile: KEYFILE,
+  credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
   scopes: SCOPES,
 })
+
 
 const drive = google.drive({ version: 'v3', auth })
 
