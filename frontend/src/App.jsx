@@ -86,7 +86,7 @@ const App = () => {
                 <table className="min-w-full table-auto text-sm text-left text-gray-700">
                   <thead className="bg-gray-200 sticky top-0">
                     <tr>
-                      {Object.keys(txtData[0]).map(key => (
+                    {Object.keys(txtData[0]).filter(key => !key.startsWith('Otherinfo')).map(key => (
                         <th key={key} className="px-4 py-2 text-sm font-medium border-b border-gray-300">
                           {key.replace(/_/g, ' ')}
                         </th>
@@ -105,7 +105,9 @@ const App = () => {
                             : 'bg-gray-50'
                         } hover:bg-gray-100`}
                       >
-                        {Object.entries(row).map(([key, value]) => (
+                      {Object.entries(row)
+                        .filter(([key]) => !key.startsWith('Otherinfo'))
+                        .map(([key, value]) => (
                           <td
                             key={key}
                             className="px-4 py-2 text-sm border-b border-gray-300"
