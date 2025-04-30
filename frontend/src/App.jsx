@@ -5,6 +5,11 @@ import Plot from 'react-plotly.js'
 {/*const API = 'http://localhost:5000'*/}
 const API = 'https://genomicsapp.onrender.com'
 
+const parseFloatSafe = val => {
+  const num = parseFloat(val)
+  return isNaN(num) ? null : num
+}
+
 const App = () => {
   const [file, setFile] = useState(null)
   const [userId, setUserId] = useState(null)
@@ -124,7 +129,7 @@ const App = () => {
 
               {/* Bar: Variants per Gene */}
               <div className="bg-white p-6 rounded-xl shadow-lg">
-                <h3 className="text-lg font-semibold mb-2">🧬 Variants Per Gene</h3>
+                <h3 className="text-lg font-semibold mb-2"> Variants Per Gene</h3>
                 <Plot
                   data={[
                     {
@@ -155,7 +160,7 @@ const App = () => {
 
               {/* Pie: Exonic Function Distribution */}
               <div className="bg-white p-6 rounded-xl shadow-lg">
-                <h3 className="text-lg font-semibold mb-2">🧠 Variant Type Distribution</h3>
+                <h3 className="text-lg font-semibold mb-2"> Variant Type Distribution</h3>
                 <Plot
                   data={[
                     {
@@ -187,7 +192,7 @@ const App = () => {
 
               {/* gnomAD Frequencies */}
               <div className="bg-white p-6 rounded-xl shadow-lg">
-                <h3 className="text-lg font-semibold mb-2">🌍 gnomAD Population Frequencies</h3>
+                <h3 className="text-lg font-semibold mb-2"> gnomAD Population Frequencies</h3>
                 <Plot
                   data={[
                     {
@@ -203,6 +208,104 @@ const App = () => {
                     height: 300,
                     xaxis: { title: 'Frequency' },
                     yaxis: { title: 'Count' },
+                  }}
+                />
+              </div>
+              {/* ClinVar Pathogenicity Pie Chart */}
+              <div className="bg-white p-6 rounded-xl shadow-lg">
+                <h3 className="text-lg font-semibold mb-2">🧪 ClinVar Pathogenicity Distribution</h3>
+                <Plot
+                  data={[
+                    {
+                      type: 'pie',
+                      labels: Object.entries(
+                        txtData.reduce((acc, row) => {
+                          const sig = row['clinvar_20220320'] || 'Unknown'
+                          acc[sig] = (acc[sig] || 0) + 1
+                          return acc
+                        }, {})
+                      ).map(([label]) => label),
+                      values: Object.entries(
+                        txtData.reduce((acc, row) => {
+                          const sig = row['clinvar_20220320'] || 'Unknown'
+                          acc[sig] = (acc[sig] || 0) + 1
+                          return acc
+                        }, {})
+                      ).map(([_, count]) => count),
+                      textinfo: 'label+percent',
+                      hole: 0.3,
+                    },
+                  ]}
+                  layout={{
+                    height: 300,
+                    margin: { t: 30 },
+                    title: 'ClinVar Clinical Significance',
+                  }}
+                />
+              </div>
+              {/* Scatter: AF vs Clinical Significance */}
+              <div className="bg-white p-6 rounded-xl shadow-lg">
+                <h3 className="text-lg font-semibold mb-2"> Allele Frequency vs Clinical Significance</h3>
+                <Plot
+                  data={Object.entries(
+                    txtData.reduce((acc, row) => {
+                      const sig = row['clinvar_20220320'] || 'Unknown'
+                      const af = parseFloatSafe(row['gnomAD_genome_ALL'])
+                      if (!isNaN(af)) {
+                        acc[sig] = acc[sig] || []
+                        acc[sig].push(af)
+                      }
+                      return acc
+                    }, {})
+                  ).map(([sig, afList]) => ({
+                    x: afList,
+                    y: Array(afList.length).fill(sig),
+                    mode: 'markers',
+                    type: 'scatter',
+                    name: sig,
+                  }))}
+                  layout={{
+                    height: 400,
+                    title: 'gnomAD Allele Frequency vs Clinical Significance',
+                    xaxis: { title: 'Allele Frequency (log)', type: 'log' },
+                    yaxis: { title: 'ClinVar Significance' },
+                  }}
+                />
+              </div>
+              {/* Bar: COSMIC-Matched Variants per Gene */}
+              <div className="bg-white p-6 rounded-xl shadow-lg">
+                <h3 className="text-lg font-semibold mb-2"> COSMIC-Matched Variants per Gene</h3>
+                <Plot
+                  data={[
+                    {
+                      type: 'bar',
+                      x: Object.entries(
+                        txtData.reduce((acc, row) => {
+                          if (row['cosmic88'] && row['cosmic88'].trim() !== '') {
+                            const gene = row['Gene.refGene'] || 'Unknown'
+                            acc[gene] = (acc[gene] || 0) + 1
+                          }
+                          return acc
+                        }, {})
+                      ).map(([gene]) => gene),
+                      y: Object.entries(
+                        txtData.reduce((acc, row) => {
+                          if (row['cosmic88'] && row['cosmic88'].trim() !== '') {
+                            const gene = row['Gene.refGene'] || 'Unknown'
+                            acc[gene] = (acc[gene] || 0) + 1
+                          }
+                          return acc
+                        }, {})
+                      ).map(([_, count]) => count),
+                      marker: { color: '#ff7675' },
+                    },
+                  ]}
+                  layout={{
+                    height: 300,
+                    margin: { t: 30, b: 100 },
+                    xaxis: { title: 'Gene', tickangle: -45 },
+                    yaxis: { title: '# COSMIC-Matched Variants' },
+                    title: 'Known Cancer-Associated Mutations',
                   }}
                 />
               </div>
