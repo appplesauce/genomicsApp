@@ -47,50 +47,47 @@ const App = () => {
   }, [userId])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex justify-center items-start py-10 px-4">
-      <div className="w-full max-w-5xl bg-white shadow-xl rounded-2xl p-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-center text-indigo-700 mb-8">
+    <div className="h-screen w-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center px-4">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl p-10">
+        <h1 className="text-3xl font-bold text-center text-indigo-700 mb-6">
           Genomic VCF Upload & Visualization
         </h1>
   
-        {/* Upload Section */}
+        {/* Upload form */}
         <div className="flex flex-col items-center gap-4 mb-6">
           <input
             type="file"
             accept=".vcf"
             onChange={e => setFile(e.target.files[0])}
-            className="w-full md:w-2/3 p-3 border border-gray-300 rounded-lg text-sm"
+            className="w-full md:w-2/3 p-3 border border-gray-300 rounded"
           />
           <button
-            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
             onClick={handleUpload}
+            className="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
           >
             Submit VCF File
           </button>
         </div>
   
-        {/* Status Text */}
+        {/* Status message */}
         {userId && (
-          <p className="text-center text-sm text-gray-600 mb-8">
-            Waiting for results... Your session ID: <strong>{userId}</strong>
+          <p className="text-center text-sm text-gray-600 mb-6">
+            Waiting for results... Session ID: <strong>{userId}</strong>
           </p>
         )}
   
-        {/* Table + Graphs Section */}
+        {/* Result data */}
         {txtData && (
           <div className="space-y-10">
             {/* Table */}
-            <div className="overflow-auto max-h-96 border border-gray-200 rounded-lg shadow-sm">
+            <div className="overflow-auto max-h-96 border border-gray-300 rounded-lg shadow-sm">
               <table className="min-w-full text-sm text-gray-700 table-auto border-collapse">
                 <thead className="bg-indigo-100 sticky top-0 z-10">
                   <tr>
                     {Object.keys(txtData[0])
                       .filter(key => !key.startsWith('Otherinfo'))
                       .map(key => (
-                        <th
-                          key={key}
-                          className="px-4 py-2 font-semibold border border-gray-300 whitespace-nowrap"
-                        >
+                        <th key={key} className="px-4 py-2 font-semibold border border-gray-200 whitespace-nowrap">
                           {key}
                         </th>
                       ))}
