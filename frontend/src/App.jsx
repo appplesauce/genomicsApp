@@ -47,14 +47,14 @@ const App = () => {
   }, [userId])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-5xl bg-white shadow-2xl rounded-2xl p-8 transition-all duration-300">
-        <h1 className="text-3xl md:text-4xl font-bold text-center text-indigo-700 mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex justify-center items-start py-10 px-4">
+      <div className="w-full max-w-5xl bg-white shadow-xl rounded-2xl p-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-center text-indigo-700 mb-8">
           Genomic VCF Upload & Visualization
         </h1>
   
         {/* Upload Section */}
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-4">
+        <div className="flex flex-col items-center gap-4 mb-6">
           <input
             type="file"
             accept=".vcf"
@@ -71,25 +71,25 @@ const App = () => {
   
         {/* Status Text */}
         {userId && (
-          <p className="text-center text-sm text-gray-600 mb-6">
+          <p className="text-center text-sm text-gray-600 mb-8">
             Waiting for results... Your session ID: <strong>{userId}</strong>
           </p>
         )}
   
         {/* Table + Graphs Section */}
         {txtData && (
-          <div className="mt-10 space-y-10">
+          <div className="space-y-10">
             {/* Table */}
-            <div className="overflow-auto max-h-96 border rounded-lg shadow">
+            <div className="overflow-auto max-h-96 border border-gray-200 rounded-lg shadow-sm">
               <table className="min-w-full text-sm text-gray-700 table-auto border-collapse">
-                <thead className="bg-indigo-100 sticky top-0">
+                <thead className="bg-indigo-100 sticky top-0 z-10">
                   <tr>
                     {Object.keys(txtData[0])
                       .filter(key => !key.startsWith('Otherinfo'))
                       .map(key => (
                         <th
                           key={key}
-                          className="px-4 py-2 font-semibold border border-gray-200 whitespace-nowrap"
+                          className="px-4 py-2 font-semibold border border-gray-300 whitespace-nowrap"
                         >
                           {key}
                         </th>
