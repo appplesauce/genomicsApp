@@ -193,7 +193,7 @@ const App = () => {
               </table>
             </div>
 
-            {/* Enhanced Interactive Table */}
+            {/* Interactive Table */}
             <h2 className="subtitle" style={{ marginTop: '2rem' }}> Variant Summary</h2>
             <div className="interactive-table">
               <table>
