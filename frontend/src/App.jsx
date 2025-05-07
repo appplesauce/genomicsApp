@@ -47,71 +47,62 @@ const App = () => {
   }, [userId])
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-100 py-8">
-      <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl">
-        <h1 className="text-4xl font-semibold text-center text-blue-700 mb-6">
-          Genomic VCF File Upload & Visualization
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-6">
+      <div className="w-full max-w-5xl bg-white shadow-2xl rounded-2xl p-8 transition-all duration-300">
+        <h1 className="text-3xl md:text-4xl font-bold text-center text-indigo-700 mb-6">
+          Genomic VCF Upload & Visualization
         </h1>
-
-        <div className="flex justify-center items-center gap-4 mb-8">
+  
+        {/* Upload Section */}
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-4">
           <input
             type="file"
             accept=".vcf"
             onChange={e => setFile(e.target.files[0])}
-            className="w-2/3 p-3 border border-gray-300 rounded-lg"
+            className="w-full md:w-2/3 p-3 border border-gray-300 rounded-lg text-sm"
           />
           <button
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
             onClick={handleUpload}
           >
             Submit VCF File
           </button>
         </div>
-
+  
+        {/* Status Text */}
         {userId && (
-          <p className="text-center text-sm text-gray-600 mb-4">
+          <p className="text-center text-sm text-gray-600 mb-6">
             Waiting for results... Your session ID: <strong>{userId}</strong>
           </p>
         )}
-
+  
+        {/* Table + Graphs Section */}
         {txtData && (
-          <div>
-            {/* Table Section */}
-            <div className="bg-white rounded-xl shadow p-6 mb-8">
-              <h2 className="text-2xl font-semibold mb-4 text-center text-gray-700">
-                Variant Results Preview
-              </h2>
-
-              <div className="overflow-auto max-h-80">
-                <table className="min-w-full table-auto text-sm text-left text-gray-700">
-                  <thead className="bg-gray-200 sticky top-0">
-                    <tr>
-                    {Object.keys(txtData[0]).filter(key => !key.startsWith('Otherinfo')).map(key => (
-                        <th key={key} className="px-4 py-2 text-sm font-medium border-b border-gray-300">
-                          {key.replace(/_/g, ' ')}
+          <div className="mt-10 space-y-10">
+            {/* Table */}
+            <div className="overflow-auto max-h-96 border rounded-lg shadow">
+              <table className="min-w-full text-sm text-gray-700 table-auto border-collapse">
+                <thead className="bg-indigo-100 sticky top-0">
+                  <tr>
+                    {Object.keys(txtData[0])
+                      .filter(key => !key.startsWith('Otherinfo'))
+                      .map(key => (
+                        <th
+                          key={key}
+                          className="px-4 py-2 font-semibold border border-gray-200 whitespace-nowrap"
+                        >
+                          {key}
                         </th>
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {txtData.slice(0, 10).map((row, i) => (
-                      <tr
-                        key={i}
-                        className={`${
-                          row['clinvar_20220320']?.toLowerCase().includes('pathogenic')
-                            ? 'bg-red-50'
-                            : i % 2 === 0
-                            ? 'bg-white'
-                            : 'bg-gray-50'
-                        } hover:bg-gray-100`}
-                      >
+                  </tr>
+                </thead>
+                <tbody>
+                  {txtData.slice(0, 10).map((row, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       {Object.entries(row)
                         .filter(([key]) => !key.startsWith('Otherinfo'))
                         .map(([key, value]) => (
-                          <td
-                            key={key}
-                            className="px-4 py-2 text-sm border-b border-gray-300"
-                          >
+                          <td key={key} className="px-4 py-2 border border-gray-200">
                             {key === 'AAChange.refGene'
                               ? <code className="text-blue-600 font-mono">{value}</code>
                               : key === 'Gene.refGene'
@@ -119,11 +110,10 @@ const App = () => {
                               : value}
                           </td>
                         ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             {/* Graphs Section */}
