@@ -101,6 +101,8 @@ const App = () => {
   const [userId, setUserId] = useState(null)
   const [txtData, setTxtData] = useState(null)
   const [selectedRow, setSelectedRow] = useState(null)
+  const [loadingResult, setLoadingResult] = useState(false)
+
 
   const handleUpload = async () => {
     if (!file) return alert('Choose a VCF file.')
@@ -119,19 +121,23 @@ const App = () => {
 
   useEffect(() => {
     if (!userId) return
-
+  
+    setLoadingResult(true)
+  
     const interval = setInterval(async () => {
       const res = await fetch(`${API}/result/${userId}`)
       if (res.status === 200) {
         const json = await res.json()
         const parsed = d3.tsvParse(json.data)
         setTxtData(parsed)
+        setLoadingResult(false)
         clearInterval(interval)
       }
-    }, 5000)
-
+    }, 1000)
+  
     return () => clearInterval(interval)
   }, [userId])
+  
 
   return (
     <div className="container">
