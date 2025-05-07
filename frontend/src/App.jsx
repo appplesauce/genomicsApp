@@ -47,76 +47,47 @@ const App = () => {
   }, [userId])
  
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl p-10">
-        <h1 className="text-3xl font-bold text-center text-indigo-700 mb-6">
-          Genomic VCF Upload & Visualization
-        </h1>
-
-        <h1 className="text-4xl text-red-500 font-bold text-center mt-10">
-          Tailwind is working!
-        </h1>
-
+    <div className="app-container">
+      <h1 style={{ textAlign: 'center', fontSize: '1.8rem', marginBottom: '1rem', color: '#4f46e5' }}>
+        Genomic VCF Upload & Visualization
+      </h1>
   
-        {/* Upload form */}
-        <div className="flex flex-col items-center gap-4 mb-6">
-          <input
-            type="file"
-            accept=".vcf"
-            onChange={e => setFile(e.target.files[0])}
-            className="w-full md:w-2/3 p-3 border border-gray-300 rounded"
-          />
-          <button
-            onClick={handleUpload}
-            className="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
-          >
-            Submit VCF File
-          </button>
-        </div>
+      <div className="upload-area">
+        <input type="file" accept=".vcf" onChange={e => setFile(e.target.files[0])} />
+        <button onClick={handleUpload}>Submit VCF File</button>
+      </div>
   
-        {/* Status message */}
-        {userId && (
-          <p className="text-center text-sm text-gray-600 mb-6">
-            Waiting for results... Session ID: <strong>{userId}</strong>
-          </p>
-        )}
+      {userId && (
+        <p className="status">
+          Waiting for result... Your session ID: <strong>{userId}</strong>
+        </p>
+      )}
   
-        {/* Result data */}
-        {txtData && (
-          <div className="space-y-10">
-            {/* Table */}
-            <div className="overflow-auto max-h-96 border border-gray-300 rounded-lg shadow-sm">
-              <table className="min-w-full text-sm text-gray-700 table-auto border-collapse">
-                <thead className="bg-indigo-100 sticky top-0 z-10">
-                  <tr>
-                    {Object.keys(txtData[0])
-                      .filter(key => !key.startsWith('Otherinfo'))
-                      .map(key => (
-                        <th key={key} className="px-4 py-2 font-semibold border border-gray-200 whitespace-nowrap">
-                          {key}
-                        </th>
-                      ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {txtData.slice(0, 10).map((row, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      {Object.entries(row)
-                        .filter(([key]) => !key.startsWith('Otherinfo'))
-                        .map(([key, value]) => (
-                          <td key={key} className="px-4 py-2 border border-gray-200">
-                            {key === 'AAChange.refGene'
-                              ? <code className="text-blue-600 font-mono">{value}</code>
-                              : key === 'Gene.refGene'
-                              ? <strong className="text-purple-700">{value}</strong>
-                              : value}
-                          </td>
-                        ))}
-                    </tr>
+      {txtData && (
+        <div className="data-section">
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Result Preview</h2>
+          <table>
+            <thead>
+              <tr>
+                {Object.keys(txtData[0])
+                  .filter(key => !key.startsWith('Otherinfo'))
+                  .map(key => (
+                    <th key={key}>{key}</th>
                   ))}
-                </tbody>
-              </table>
-            </div>
+              </tr>
+            </thead>
+            <tbody>
+              {txtData.slice(0, 10).map((row, i) => (
+                <tr key={i}>
+                  {Object.entries(row)
+                    .filter(([key]) => !key.startsWith('Otherinfo'))
+                    .map(([key, val]) => (
+                      <td key={key}>{val}</td>
+                    ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
             {/* Graphs Section */}
             <div className="mt-10 space-y-12">
