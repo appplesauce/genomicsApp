@@ -52,6 +52,11 @@ const App = () => {
         <h1 className="text-3xl font-bold text-center text-indigo-700 mb-6">
           Genomic VCF Upload & Visualization
         </h1>
+
+        <h1 className="text-4xl text-red-500 font-bold text-center mt-10">
+          Tailwind is working!
+        </h1>
+
   
         {/* Upload form */}
         <div className="flex flex-col items-center gap-4 mb-6">
