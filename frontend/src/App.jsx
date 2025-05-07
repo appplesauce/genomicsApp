@@ -45,7 +45,7 @@ const App = () => {
 
     return () => clearInterval(interval)
   }, [userId])
-
+ 
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center px-4">
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl p-10">
