@@ -141,7 +141,7 @@ const App = () => {
                     <th>ClinVar</th>
                     <th>COSMIC</th>
                     <th>Pop Freq</th>
-                    <th>Action</th>
+                    <th>View More</th>
                   </tr>
                 </thead>
                 <tbody>
