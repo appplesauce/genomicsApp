@@ -11,13 +11,37 @@ const parseFloatSafe = val => {
 
 // Modal component
 const DetailModal = ({ row, onClose }) => {
+  const [geneId, setGeneId] = useState(null)
+
+  useEffect(() => {
+    const fetchGeneId = async () => {
+      const symbol = row?.['Gene.refGene']
+      if (!symbol) return
+
+      const query = encodeURIComponent(`${symbol}[Gene Name] AND Homo sapiens[Organism]`)
+      const url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=gene&term=${query}&retmode=json`
+
+      try {
+        const res = await fetch(url)
+        const json = await res.json()
+        const id = json.esearchresult?.idlist?.[0]
+        setGeneId(id || null)
+      } catch (err) {
+        console.error('Failed to fetch NCBI gene ID:', err)
+        setGeneId(null)
+      }
+    }
+
+    if (row) fetchGeneId()
+  }, [row])
+
   if (!row) return null
-  const gene = row['Gene.refGene']
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <h2>Variant Details</h2>
+
         <table className="modal-table">
           <tbody>
             {Object.entries(row).map(([key, value]) => (
@@ -26,22 +50,31 @@ const DetailModal = ({ row, onClose }) => {
                 <td>{value}</td>
               </tr>
             ))}
-            {gene && (
-              <tr>
-                <td><strong>NCBI Gene</strong></td>
-                <td>
-                  <a
-                    href={`https://www.ncbi.nlm.nih.gov/gene/?term=${gene}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    View {gene} on NCBI
-                  </a>
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
+
+        {geneId && (
+          <div className="gene-iframe">
+            <h3>🧬 NCBI Gene Summary</h3>
+            <iframe
+              title="NCBI Gene Summary"
+              src={`https://www.ncbi.nlm.nih.gov/gene/${geneId}`}
+              style={{ width: '100%', height: '400px', border: '1px solid #ccc', borderRadius: '6px' }}
+            ></iframe>
+
+            <div style={{ marginTop: '0.5rem', textAlign: 'right' }}>
+              <a
+                href={`https://www.ncbi.nlm.nih.gov/gene/${geneId}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ fontSize: '0.9rem', color: '#4f46e5', textDecoration: 'underline' }}
+              >
+                🔗 View full summary on ncbi.nlm.nih.gov
+              </a>
+            </div>
+          </div>
+        )}
+
         <button className="modal-close" onClick={onClose}>Close</button>
       </div>
     </div>
