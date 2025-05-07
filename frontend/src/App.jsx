@@ -88,194 +88,71 @@ const App = () => {
               ))}
             </tbody>
           </table>
+          <h2 className="subtitle" style={{ marginTop: '2rem' }}>Interactive Variant Summary</h2>
+    <div className="interactive-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Gene</th>
+            <th>Protein Change</th>
+            <th>Function</th>
+            <th>ClinVar</th>
+            <th>COSMIC</th>
+            <th>Pop Freq</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {txtData.map((row, i) => {
+            const gene = row['Gene.refGene']
+            const aaChange = row['AAChange.refGene']
+            const exonicFunc = row['ExonicFunc.refGene']
+            const clinVar = row['clinvar_20220320']
+            const cosmic = row['cosmic88']
+            const freq = parseFloat(row['gnomAD_genome_ALL'])
 
-            {/* Graphs Section */}
-            <div className="mt-10 space-y-12">
+            const clinClass = (clinVar || '').toLowerCase().includes('pathogenic')
+              ? 'clin-pathogenic'
+              : (clinVar || '').toLowerCase().includes('benign')
+              ? 'clin-benign'
+              : (clinVar || '').toLowerCase().includes('uncertain')
+              ? 'clin-uncertain'
+              : 'clin-unknown'
 
-              {/* Bar: Variants per Gene */}
-              <div className="bg-white p-6 rounded-xl shadow-lg">
-                <h3 className="text-lg font-semibold mb-2"> Variants Per Gene</h3>
-                <Plot
-                  data={[
-                    {
-                      type: 'bar',
-                      x: Object.entries(
-                        txtData.reduce((acc, row) => {
-                          acc[row['Gene.refGene']] = (acc[row['Gene.refGene']] || 0) + 1
-                          return acc
-                        }, {})
-                      ).map(([gene]) => gene),
-                      y: Object.entries(
-                        txtData.reduce((acc, row) => {
-                          acc[row['Gene.refGene']] = (acc[row['Gene.refGene']] || 0) + 1
-                          return acc
-                        }, {})
-                      ).map(([_, count]) => count),
-                      marker: { color: '#7b61ff' },
-                    },
-                  ]}
-                  layout={{
-                    height: 300,
-                    margin: { t: 20, b: 100 },
-                    xaxis: { tickangle: -45, title: 'Gene' },
-                    yaxis: { title: 'Variant Count' },
-                  }}
-                />
-              </div>
-
-              {/* Pie: Exonic Function Distribution */}
-              <div className="bg-white p-6 rounded-xl shadow-lg">
-                <h3 className="text-lg font-semibold mb-2"> Variant Type Distribution</h3>
-                <Plot
-                  data={[
-                    {
-                      type: 'pie',
-                      labels: Object.entries(
-                        txtData.reduce((acc, row) => {
-                          const type = row['ExonicFunc.refGene'] || 'Unknown'
-                          acc[type] = (acc[type] || 0) + 1
-                          return acc
-                        }, {})
-                      ).map(([type]) => type),
-                      values: Object.entries(
-                        txtData.reduce((acc, row) => {
-                          const type = row['ExonicFunc.refGene'] || 'Unknown'
-                          acc[type] = (acc[type] || 0) + 1
-                          return acc
-                        }, {})
-                      ).map(([_, count]) => count),
-                      hole: 0.4,
-                    },
-                  ]}
-                  layout={{
-                    height: 300,
-                    margin: { t: 20 },
-                    title: 'Variant Types',
-                  }}
-                />
-              </div>
-
-              {/* gnomAD Frequencies */}
-              <div className="bg-white p-6 rounded-xl shadow-lg">
-                <h3 className="text-lg font-semibold mb-2"> gnomAD Population Frequencies</h3>
-                <Plot
-                  data={[
-                    {
-                      type: 'histogram',
-                      x: txtData
-                        .map(row => parseFloat(row['gnomAD_genome_ALL']))
-                        .filter(val => !isNaN(val)),
-                      marker: { color: '#00b894' },
-                      nbinsx: 10,
-                    },
-                  ]}
-                  layout={{
-                    height: 300,
-                    xaxis: { title: 'Frequency' },
-                    yaxis: { title: 'Count' },
-                  }}
-                />
-              </div>
-              {/* ClinVar Pathogenicity Pie Chart */}
-              <div className="bg-white p-6 rounded-xl shadow-lg">
-                <h3 className="text-lg font-semibold mb-2">🧪 ClinVar Pathogenicity Distribution</h3>
-                <Plot
-                  data={[
-                    {
-                      type: 'pie',
-                      labels: Object.entries(
-                        txtData.reduce((acc, row) => {
-                          const sig = row['clinvar_20220320'] || 'Unknown'
-                          acc[sig] = (acc[sig] || 0) + 1
-                          return acc
-                        }, {})
-                      ).map(([label]) => label),
-                      values: Object.entries(
-                        txtData.reduce((acc, row) => {
-                          const sig = row['clinvar_20220320'] || 'Unknown'
-                          acc[sig] = (acc[sig] || 0) + 1
-                          return acc
-                        }, {})
-                      ).map(([_, count]) => count),
-                      textinfo: 'label+percent',
-                      hole: 0.3,
-                    },
-                  ]}
-                  layout={{
-                    height: 300,
-                    margin: { t: 30 },
-                    title: 'ClinVar Clinical Significance',
-                  }}
-                />
-              </div>
-              {/* Scatter: AF vs Clinical Significance */}
-              <div className="bg-white p-6 rounded-xl shadow-lg">
-                <h3 className="text-lg font-semibold mb-2"> Allele Frequency vs Clinical Significance</h3>
-                <Plot
-                  data={Object.entries(
-                    txtData.reduce((acc, row) => {
-                      const sig = row['clinvar_20220320'] || 'Unknown'
-                      const af = parseFloatSafe(row['gnomAD_genome_ALL'])
-                      if (!isNaN(af)) {
-                        acc[sig] = acc[sig] || []
-                        acc[sig].push(af)
-                      }
-                      return acc
-                    }, {})
-                  ).map(([sig, afList]) => ({
-                    x: afList,
-                    y: Array(afList.length).fill(sig),
-                    mode: 'markers',
-                    type: 'scatter',
-                    name: sig,
-                  }))}
-                  layout={{
-                    height: 400,
-                    title: 'gnomAD Allele Frequency vs Clinical Significance',
-                    xaxis: { title: 'Allele Frequency (log)', type: 'log' },
-                    yaxis: { title: 'ClinVar Significance' },
-                  }}
-                />
-              </div>
-              {/* Bar: COSMIC-Matched Variants per Gene */}
-              <div className="bg-white p-6 rounded-xl shadow-lg">
-                <h3 className="text-lg font-semibold mb-2"> COSMIC-Matched Variants per Gene</h3>
-                <Plot
-                  data={[
-                    {
-                      type: 'bar',
-                      x: Object.entries(
-                        txtData.reduce((acc, row) => {
-                          if (row['cosmic88'] && row['cosmic88'].trim() !== '') {
-                            const gene = row['Gene.refGene'] || 'Unknown'
-                            acc[gene] = (acc[gene] || 0) + 1
-                          }
-                          return acc
-                        }, {})
-                      ).map(([gene]) => gene),
-                      y: Object.entries(
-                        txtData.reduce((acc, row) => {
-                          if (row['cosmic88'] && row['cosmic88'].trim() !== '') {
-                            const gene = row['Gene.refGene'] || 'Unknown'
-                            acc[gene] = (acc[gene] || 0) + 1
-                          }
-                          return acc
-                        }, {})
-                      ).map(([_, count]) => count),
-                      marker: { color: '#ff7675' },
-                    },
-                  ]}
-                  layout={{
-                    height: 300,
-                    margin: { t: 30, b: 100 },
-                    xaxis: { title: 'Gene', tickangle: -45 },
-                    yaxis: { title: '# COSMIC-Matched Variants' },
-                    title: 'Known Cancer-Associated Mutations',
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+            return (
+              <tr key={i}>
+                <td>
+                  <a href={`https://www.ncbi.nlm.nih.gov/gene/?term=${gene}`} target="_blank" rel="noreferrer">
+                    {gene}
+                  </a>
+                </td>
+                <td><code>{aaChange}</code></td>
+                <td>{exonicFunc}</td>
+                <td><span className={`clin-label ${clinClass}`}>{clinVar || 'Unknown'}</span></td>
+                <td>
+                  {cosmic && cosmic.trim() !== '' ? (
+                    <a href={`https://cancer.sanger.ac.uk/cosmic/search?q=${cosmic}`} target="_blank" rel="noreferrer">
+                      🧬
+                    </a>
+                  ) : (
+                    '-'
+                  )}
+                </td>
+                <td style={{ color: freq > 0.01 ? '#999' : 'inherit' }}>
+                  {isNaN(freq) ? '-' : freq.toFixed(4)}
+                </td>
+                <td>
+                  <button className="detail-btn" onClick={() => alert(JSON.stringify(row, null, 2))}>
+                    View
+                  </button>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+        </div>
         )}
       </div>
   )

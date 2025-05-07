@@ -99,3 +99,63 @@ thead {
   border-radius: 12px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
+
+.interactive-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.interactive-table th,
+.interactive-table td {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+.interactive-table thead {
+  background-color: #f0f4ff;
+  position: sticky;
+  top: 0;
+}
+
+.clin-label {
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+  color: white;
+}
+
+.clin-pathogenic {
+  background-color: #e11d48;
+}
+
+.clin-benign {
+  background-color: #10b981;
+}
+
+.clin-uncertain {
+  background-color: #facc15;
+  color: black;
+}
+
+.clin-unknown {
+  background-color: #9ca3af;
+}
+
+.detail-btn {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  background-color: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.detail-btn:hover {
+  background-color: #4f46e5;
+}
