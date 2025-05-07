@@ -12,12 +12,14 @@ const parseFloatSafe = val => {
 // Modal component
 const DetailModal = ({ row, onClose }) => {
   const [geneId, setGeneId] = useState(null)
+  const [loadingGene, setLoadingGene] = useState(false)
 
   useEffect(() => {
     const fetchGeneId = async () => {
       const symbol = row?.['Gene.refGene']
       if (!symbol) return
 
+      setLoadingGene(true)
       const query = encodeURIComponent(`${symbol}[Gene Name] AND Homo sapiens[Organism]`)
       const url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=gene&term=${query}&retmode=json`
 
@@ -29,6 +31,8 @@ const DetailModal = ({ row, onClose }) => {
       } catch (err) {
         console.error('Failed to fetch NCBI gene ID:', err)
         setGeneId(null)
+      } finally {
+        setLoadingGene(false)
       }
     }
 
@@ -53,27 +57,38 @@ const DetailModal = ({ row, onClose }) => {
           </tbody>
         </table>
 
-        {geneId && (
-          <div className="gene-iframe">
-            <h3>🧬 NCBI Gene Summary</h3>
-            <iframe
-              title="NCBI Gene Summary"
-              src={`https://www.ncbi.nlm.nih.gov/gene/${geneId}`}
-              style={{ width: '100%', height: '400px', border: '1px solid #ccc', borderRadius: '6px' }}
-            ></iframe>
+        <div className="gene-iframe">
+          <h3>🧬 NCBI Gene Summary</h3>
 
-            <div style={{ marginTop: '0.5rem', textAlign: 'right' }}>
-              <a
-                href={`https://www.ncbi.nlm.nih.gov/gene/${geneId}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{ fontSize: '0.9rem', color: '#4f46e5', textDecoration: 'underline' }}
-              >
-                🔗 View full summary on ncbi.nlm.nih.gov
-              </a>
+          {loadingGene && (
+            <div className="spinner">
+              🔍 Fetching gene ID
+              <span className="dot">.</span>
+              <span className="dot">.</span>
+              <span className="dot">.</span>
             </div>
-          </div>
-        )}
+          )}
+
+          {geneId && !loadingGene && (
+            <>
+              <iframe
+                title="NCBI Gene Summary"
+                src={`https://www.ncbi.nlm.nih.gov/gene/${geneId}`}
+                style={{ width: '100%', height: '400px', border: '1px solid #ccc', borderRadius: '6px' }}
+              ></iframe>
+              <div style={{ marginTop: '0.5rem', textAlign: 'right' }}>
+                <a
+                  href={`https://www.ncbi.nlm.nih.gov/gene/${geneId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ fontSize: '0.9rem', color: '#4f46e5', textDecoration: 'underline' }}
+                >
+                  🔗 View full summary on ncbi.nlm.nih.gov
+                </a>
+              </div>
+            </>
+          )}
+        </div>
 
         <button className="modal-close" onClick={onClose}>Close</button>
       </div>
@@ -129,9 +144,19 @@ const App = () => {
         </div>
 
         {userId && (
-          <p className="status">
-            Waiting for result... Your session ID: <strong>{userId}</strong>
-          </p>
+          <>
+            <p className="status">
+              Your session ID: <strong>{userId}</strong>
+            </p>
+            {loadingResult && (
+              <div className="spinner">
+              <span>📄 Waiting for annotated result</span>
+              <span className="dot">.</span>
+              <span className="dot">.</span>
+              <span className="dot">.</span>
+            </div>            
+            )}
+          </>
         )}
 
         {txtData && (
@@ -163,7 +188,7 @@ const App = () => {
             </div>
 
             {/* Enhanced Interactive Table */}
-            <h2 className="subtitle" style={{ marginTop: '2rem' }}>Interactive Variant Summary</h2>
+            <h2 className="subtitle" style={{ marginTop: '2rem' }}> Variant Summary</h2>
             <div className="interactive-table">
               <table>
                 <thead>
