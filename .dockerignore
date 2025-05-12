@@ -1,0 +1,14 @@
+# Node 
+**/node_modules
+npm-debug.log
+
+# Local env files
+*.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build output we regenerate
+frontend/dist
+backend/public
