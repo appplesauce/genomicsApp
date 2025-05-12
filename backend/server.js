@@ -6,6 +6,8 @@ import { v4 as uuid } from 'uuid'
 import fs from 'fs'
 import { uploadVCFToDrive } from './driveService.js'
 import { memoryStore, startDrivePolling } from './drivePoller.js'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 dotenv.config()
 const app = express()
@@ -13,6 +15,13 @@ const upload = multer({ dest: 'uploads/' })
 
 app.use(cors())
 app.use(express.json())
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+app.use(express.static(path.join(__dirname, 'public')))
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'))
+})
 
 app.post('/upload', upload.single('vcf'), async (req, res) => {
   const userId = uuid()
