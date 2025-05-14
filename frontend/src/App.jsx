@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import * as d3 from 'd3'
 import Plot from 'react-plotly.js'
 
-const API = 'https://genomicsapp.onrender.com'
+// const API = 'https://genomicsapp.onrender.com'
+const API = ''
 
 const parseFloatSafe = val => {
   const num = parseFloat(val)
