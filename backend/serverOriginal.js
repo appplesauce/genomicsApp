@@ -6,8 +6,6 @@ import { v4 as uuid } from 'uuid'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import axios from 'axios'
-import * as cheerio from 'cheerio';
 
 import { uploadVCFToDrive } from './driveService.js'
 import { memoryStore, startDrivePolling } from './drivePoller.js'
@@ -51,40 +49,6 @@ app.get('/result/:id', (req, res) => {
   console.log('✅ Sending result to client:', entry.data.slice(0, 200))
   res.json({ status: 'done', data: entry.data })
 })
-
-app.get('/gnomad/refs', async (req, res) => {
-  const url = req.query.url
-  if (!url) return res.status(400).json({ error: 'Missing gnomAD URL' })
-
-  try {
-    const { data } = await axios.get(url)
-    const $ = cheerio.load(data)
-
-    const refs = {}
-
-    $('section.sc-bwCtUz ul.List-sc-4j87st-0 a').each((_, el) => {
-      const text = $(el).text()
-      if (text.includes('dbSNP')) {
-        const match = text.match(/\(rs\d+\)/)
-        if (match) refs.dbSNP = match[0].replace(/[()]/g, '')
-      }
-      if (text.includes('ClinVar')) {
-        const match = text.match(/\((\d+)\)/)
-        if (match) refs.ClinVar = match[1]
-      }
-      if (text.includes('ClinGen')) {
-        const match = text.match(/\(CA\d+\)/)
-        if (match) refs.ClinGen = match[0].replace(/[()]/g, '')
-      }
-    })
-
-    res.json(refs)
-  } catch (err) {
-    console.error('❌ gnomAD scrape failed:', err.message)
-    res.status(500).json({ error: 'Failed to scrape gnomAD page' })
-  }
-})
-
 
 // Fallback for React Router (SPA routing)
 app.get('*', (req, res) => {

@@ -263,3 +263,46 @@ thead {
   }
 }
 
+.loading-note {
+  font-style: italic;
+  color: #4b5563;
+}
+
+/* MUT_STATUS styles */
+.mut-status {
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+  color: white;
+}
+.mut-status.somatic {
+  background-color: #dc2626;
+}
+.mut-status.unknown {
+  background-color: #9ca3af;
+}
+.mut-status['—'] {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.variant-class {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+  color: white;
+  background-color: #e5e7eb; /* fallback */
+}
+
+/* Capitalized class names */
+.variant-class.SNV {
+  background-color: #2563eb; /* blue */
+}
+
+.variant-class.INDEL {
+  background-color: #f59e0b; /* amber */
+}

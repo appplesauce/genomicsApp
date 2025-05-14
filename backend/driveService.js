@@ -38,7 +38,7 @@ export const uploadVCFToDrive = async (filePath, userId) => {
 }
 
 export const findTxtFileContent = async (userId) => {
-  const expectedName = `${userId}.txt`
+  const expectedName = `${userId}.csv`
   //const expectedName = `${userId}.tsv` 
   const res = await drive.files.list({
     q: `'${FOLDER_ID}' in parents and name='${expectedName}'`,

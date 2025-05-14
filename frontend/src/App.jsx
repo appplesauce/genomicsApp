@@ -10,92 +10,34 @@ const parseFloatSafe = val => {
   return isNaN(num) ? null : num
 }
 
-// Modal component
-const DetailModal = ({ row, onClose }) => {
-  const [geneId, setGeneId] = useState(null)
-  const [loadingGene, setLoadingGene] = useState(false)
-
-  useEffect(() => {
-    const fetchGeneId = async () => {
-      const symbol = row?.['Gene.refGene']
-      if (!symbol) return
-
-      setLoadingGene(true)
-      const query = encodeURIComponent(`${symbol}[Gene Name] AND Homo sapiens[Organism]`)
-      const url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=gene&term=${query}&retmode=json`
-
-      try {
-        const res = await fetch(url)
-        const json = await res.json()
-        const id = json.esearchresult?.idlist?.[0]
-        setGeneId(id || null)
-      } catch (err) {
-        console.error('Failed to fetch NCBI gene ID:', err)
-        setGeneId(null)
-      } finally {
-        setLoadingGene(false)
-      }
-    }
-
-    if (row) fetchGeneId()
-  }, [row])
-
-  if (!row) return null
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>Variant Details</h2>
-
-        <table className="modal-table">
-          <tbody>
-            {Object.entries(row).map(([key, value]) => (
-              <tr key={key}>
-                <td><strong>{key}</strong></td>
-                <td>{value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="gene-iframe">
-          <h3>🧬 NCBI Gene Summary</h3>
-
-          {loadingGene && (
-            <div className="spinner">
-              🔍 Fetching gene ID
-              <span className="dot">.</span>
-              <span className="dot">.</span>
-              <span className="dot">.</span>
-            </div>
-          )}
-
-          {geneId && !loadingGene && (
-            <>
-              <iframe
-                title="NCBI Gene Summary"
-                src={`https://www.ncbi.nlm.nih.gov/gene/${geneId}`}
-                style={{ width: '100%', height: '400px', border: '1px solid #ccc', borderRadius: '6px' }}
-              ></iframe>
-              <div style={{ marginTop: '0.5rem', textAlign: 'right' }}>
-                <a
-                  href={`https://www.ncbi.nlm.nih.gov/gene/${geneId}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ fontSize: '0.9rem', color: '#4f46e5', textDecoration: 'underline' }}
-                >
-                  🔗 View full summary on ncbi.nlm.nih.gov
-                </a>
-              </div>
-            </>
-          )}
-        </div>
-
-        <button className="modal-close" onClick={onClose}>Close</button>
-      </div>
-    </div>
-  )
+const formatStatus = status => {
+  const s = (status || '').toLowerCase()
+  if (s.includes('somatic')) return 'Somatic'
+  if (s.includes('unknown')) return 'Unknown'
+  return '—'
 }
+
+const formatConsequenceShort = cons => {
+  if (!cons) return '—'
+  const first = cons.split('|')[0]
+  return first.replace(/_/g, ' ')
+}
+
+const formatConsequenceLong = cons => {
+  if (!cons) return '—'
+  return cons.split('|').map(c => c.replace(/_/g, ' ')).join('\n')
+}
+
+const formatPolyPhenShort = val => {
+  if (!val) return 'N/A'
+  return val.split('|')[0]
+}
+
+const formatPolyPhenLong = val => {
+  if (!val) return 'N/A'
+  return val.split('|').join('\n')
+}
+
 
 const App = () => {
   const [file, setFile] = useState(null)
@@ -103,6 +45,32 @@ const App = () => {
   const [txtData, setTxtData] = useState(null)
   const [selectedRow, setSelectedRow] = useState(null)
   const [loadingResult, setLoadingResult] = useState(false)
+  const [selectedConsequence, setSelectedConsequence] = useState(null)
+  const [selectedPolyPhen, setSelectedPolyPhen] = useState(null)
+  const [externalIds, setExternalIds] = useState({})
+  const [externalLoading, setExternalLoading] = useState(false)
+
+
+  const handleViewMore = async (row) => {
+    setSelectedRow(row)
+    setExternalIds({})
+    setExternalLoading(true)
+
+    if (!row.gnomAD_link) {
+    setExternalLoading(false)
+    return
+  }
+
+    try {
+      const res = await fetch(`/gnomad/refs?url=${encodeURIComponent(row.gnomAD_link)}`)
+      const json = await res.json()
+      setExternalIds(json)
+    } catch (err) {
+      console.error('Failed to fetch external references:', err)
+    } finally {
+      setExternalLoading(false)
+    }
+  }
 
 
   const handleUpload = async () => {
@@ -129,7 +97,7 @@ const App = () => {
       const res = await fetch(`${API}/result/${userId}`)
       if (res.status === 200) {
         const json = await res.json()
-        const parsed = d3.tsvParse(json.data)
+        const parsed = d3.csvParse(json.data)
         setTxtData(parsed)
         setLoadingResult(false)
         clearInterval(interval)
@@ -168,101 +136,171 @@ const App = () => {
 
         {txtData && (
           <div className="data-section">
-            <h2 className="subtitle">Raw Table Preview</h2>
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    {Object.keys(txtData[0])
-                      .filter(key => !key.startsWith('Otherinfo'))
-                      .map(key => (
-                        <th key={key}>{key}</th>
-                      ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {txtData.slice(0, 10).map((row, i) => (
-                    <tr key={i}>
-                      {Object.entries(row)
-                        .filter(([key]) => !key.startsWith('Otherinfo'))
-                        .map(([key, val]) => (
-                          <td key={key}>{val}</td>
-                        ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
             {/* Interactive Table */}
             <h2 className="subtitle" style={{ marginTop: '2rem' }}> Variant Summary</h2>
             <div className="interactive-table">
+              <div className="table-scroll">
               <table>
                 <thead>
                   <tr>
                     <th>Gene</th>
-                    <th>Protein Change</th>
-                    <th>Function</th>
-                    <th>ClinVar</th>
-                    <th>COSMIC</th>
+                    <th>Variant</th>
+                    <th>Class</th>
+                    <th>MUT Status</th>
+                    <th>Consequence</th>
+                    <th>Poly Phen</th>
                     <th>Pop Freq</th>
+                    <th>COSMIC</th>
                     <th>View More</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {txtData.map((row, i) => {
-                    const gene = row['Gene.refGene']
-                    const aaChange = row['AAChange.refGene']
-                    const exonicFunc = row['ExonicFunc.refGene']
-                    const clinVar = row['clinvar_20220320']
-                    const cosmic = row['cosmic88']
-                    const freq = parseFloat(row['gnomAD_genome_ALL'])
+                  {txtData.map((row, i) => (
+                    <tr key={i}>
+                      <td>{row.Gene}</td>
+                      <td>{row.Variant}</td>
+                      <td>{row.VARIANT_CLASS}</td>
+                      <td>
+                        <span className={`mut-status ${formatStatus(row.MUT_STATUS_CALLS).toLowerCase()}`}>
+                          {formatStatus(row.MUT_STATUS_CALLS)}
+                        </span>
+                      </td>
 
-                    const clinClass = (clinVar || '').toLowerCase().includes('pathogenic')
-                      ? 'clin-pathogenic'
-                      : (clinVar || '').toLowerCase().includes('benign')
-                      ? 'clin-benign'
-                      : (clinVar || '').toLowerCase().includes('uncertain')
-                      ? 'clin-uncertain'
-                      : 'clin-unknown'
-
-                    return (
-                      <tr key={i} onClick={() => setSelectedRow(row)} style={{ cursor: 'pointer' }}>
-                        <td>
-                          <a href={`https://www.ncbi.nlm.nih.gov/gene/?term=${gene}`} target="_blank" rel="noreferrer">
-                            {gene}
-                          </a>
-                        </td>
-                        <td><code>{aaChange}</code></td>
-                        <td>{exonicFunc}</td>
-                        <td><span className={`clin-label ${clinClass}`}>{clinVar || 'Unknown'}</span></td>
-                        <td>
-                          {cosmic && cosmic.trim() !== '' ? (
-                            <a href={`https://cancer.sanger.ac.uk/cosmic/search?q=${cosmic}`} target="_blank" rel="noreferrer">
-                              🧬
-                            </a>
-                          ) : (
-                            '-'
-                          )}
-                        </td>
-                        <td style={{ color: freq > 0.01 ? '#999' : 'inherit' }}>
-                          {isNaN(freq) ? '-' : freq.toFixed(4)}
-                        </td>
-                        <td>
-                          <button className="detail-btn">View</button>
-                        </td>
-                      </tr>
-                    )
-                  })}
+                      <td>
+                        <span 
+                          style={{ cursor: 'pointer', textDecoration: 'underline' }} 
+                          onClick={() => setSelectedConsequence(row.Consequence)}
+                        >
+                          {formatConsequenceShort(row.Consequence)}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          style={{ cursor: row.PolyPhen ? 'pointer' : 'default', textDecoration: row.PolyPhen ? 'underline' : 'none' }}
+                          onClick={() => row.PolyPhen && setSelectedPolyPhen(row.PolyPhen)}
+                        >
+                          {formatPolyPhenShort(row.PolyPhen)}
+                        </span>
+                      </td>
+                      <td>{row.gnomAD_AF}</td>
+                      <td>
+                        {row.COSMIC_link ? (
+                        <a href={row.COSMIC_link} target="_blank" rel="noopener noreferrer">
+                          Link
+                        </a>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td>
+                      <button className="detail-btn" onClick={() => handleViewMore(row)}>
+                        View More
+                      </button>
+                    </td>
+                  </tr>
+                ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}
-
-        <DetailModal row={selectedRow} onClose={() => setSelectedRow(null)} />
       </div>
+             {selectedConsequence && (
+        <div className="modal-overlay" onClick={() => setSelectedConsequence(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h2>All Consequences</h2>
+            <pre style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+              {formatConsequenceLong(selectedConsequence)}
+            </pre>
+            <button className="modal-close" onClick={() => setSelectedConsequence(null)}>Close</button>
+          </div>
+        </div>
+      )}
+      {selectedPolyPhen && (
+        <div className="modal-overlay" onClick={() => setSelectedPolyPhen(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h2>All PolyPhen Predictions</h2>
+            <pre style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+              {formatPolyPhenLong(selectedPolyPhen)}
+            </pre>
+            <button className="modal-close" onClick={() => setSelectedPolyPhen(null)}>Close</button>
+          </div>
+        </div>
+      )}
+      {selectedRow && (
+        <div className="modal-overlay" onClick={() => setSelectedRow(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h2>Variant Details</h2>
+            <table className="modal-table">
+              <tbody>
+                <tr>
+                  <td><strong>cDNA Change</strong></td>
+                  <td>{selectedRow.cDNA_change || '—'}</td>
+                </tr>
+                <tr>
+                  <td><strong>Protein Change</strong></td>
+                  <td>{selectedRow.Protein_change || '—'}</td>
+                </tr>
+                <tr>
+                  <td><strong>gnomAD</strong></td>
+                  <td>
+                    {selectedRow.gnomAD_link ? (
+                      <a href={selectedRow.gnomAD_link} target="_blank" rel="noopener noreferrer">
+                      View on gnomAD
+                    </a>
+                  ) : '—'}
+                </td>
+              </tr>
+              {externalLoading && (
+  <tr>
+    <td colSpan={2} className="loading-note">...</td>
+  </tr>
+)}
+
+            {externalIds.dbSNP && (
+                <tr>
+                  <td><strong>dbSNP</strong></td>
+                  <td>
+                    <a href={`https://www.ncbi.nlm.nih.gov/snp/${externalIds.dbSNP}`} target="_blank" rel="noopener noreferrer">
+                      {externalIds.dbSNP}
+                  </a>
+                </td>
+              </tr>
+                )}
+
+            {externalIds.ClinVar && (
+              <tr>
+                <td><strong>ClinVar</strong></td>
+                <td>
+                  <a href={`https://www.ncbi.nlm.nih.gov/clinvar/variation/${externalIds.ClinVar}/`} target="_blank" rel="noopener noreferrer">
+                    {externalIds.ClinVar}
+                  </a>
+                </td>
+              </tr>
+            )}
+
+            {externalIds.ClinGen && (
+            <tr>
+              <td><strong>ClinGen</strong></td>
+                <td>
+                  <a href={`https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=${externalIds.ClinGen}`} target="_blank" rel="noopener noreferrer">
+                    {externalIds.ClinGen}
+                  </a>
+                </td>
+              </tr>
+            )}
+
+            </tbody>
+          </table>
+      <button className="modal-close" onClick={() => setSelectedRow(null)}>Close</button>
     </div>
+  </div>
+)}
+     
+
+    </div>
+
   )
 }
 
